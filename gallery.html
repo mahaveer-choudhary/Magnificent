@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magnificent's Project Gallery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #111118;
+            --text-primary: #e6e6e6;
+            --text-secondary: #a0a0a8;
+            --accent-color: #4a90e2;
+            --hover-color: #6ab0ff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            background: linear-gradient(45deg, var(--accent-color), var(--hover-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.8rem;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .filter-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2.5rem;
+            gap: 1rem;
+        }
+
+        .filter-btn {
+            background-color: transparent;
+            border: 2px solid rgba(74, 144, 226, 0.2);
+            color: var(--text-secondary);
+            padding: 0.6rem 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .filter-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(74, 144, 226, 0.2), transparent);
+            transition: all 0.5s ease;
+        }
+
+        .filter-btn:hover::before {
+            left: 100%;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            border-color: var(--accent-color);
+            color: var(--text-primary);
+            transform: scale(1.05);
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            transition: all 0.4s ease;
+            perspective: 1000px;
+        }
+
+        .gallery-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 60%, rgba(0, 0, 0, 0.8));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .gallery-item:hover::after {
+            opacity: 1;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.1) rotate(3deg);
+            filter: brightness(0.7);
+        }
+
+        .gallery-item-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem;
+            z-index: 10;
+            transform: translateY(100%);
+            transition: transform 0.4s ease;
+        }
+
+        .gallery-item:hover .gallery-item-info {
+            transform: translateY(0);
+        }
+
+        .gallery-item-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .gallery-item-category {
+            font-size: 0.9rem;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .lightbox.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+            transform: scale(0.7);
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+
+        .lightbox.active .lightbox-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .lightbox-content img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .lightbox-nav,
+        .lightbox-close {
+            color: var(--text-primary);
+            font-size: 2.5rem;
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .lightbox-nav:hover,
+        .lightbox-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .gallery {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* -----------------------  */
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #3498db;
+        }
+
+        nav ul {
+            display: flex;
+            list-style-type: none;
+        }
+
+        nav ul li {
+            margin-left: 2rem;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            /* color: #333; */
+            color: #a0a0a8;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        nav ul li a:hover,
+        nav ul li a.active {
+            color: #3498db;
+        }
+
+        .logo li a {
+            text-decoration: none;
+            color: #3498db;
+            font-size: 1.5rem;
+        }
+
+        .logo li {
+            list-style-type: none;
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                flex-direction: column;
+            }
+
+            nav ul {
+                margin-top: 1rem;
+            }
+
+            nav ul li {
+                margin-left: 0;
+                margin-right: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <li><a href="index.html">Magnificent's</a></li>
+            </div>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html" class="">About</a></li>
+                <li><a href="gallery.html" class="active">Album</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="contact-us.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+    <header>
+        <h1>Design Gallery</h1>
+        <p>Discover a curated collection of architectural and interior design projects that blend innovation, elegance,
+            and functionality.</p>
+    </header>
+    <nav class="filter-container">
+        <button class="filter-btn active" data-filter="all">All Projects</button>
+        <button class="filter-btn" data-filter="interior">Interior Spaces</button>
+        <button class="filter-btn" data-filter="exterior">Exterior Design</button>
+        <button class="filter-btn" data-filter="landscape">Landscape Architecture</button>
+    </nav>
+    <main class="gallery">
+        <!-- Gallery items will be dynamically added here -->
+    </main>
+
+    <div class="lightbox">
+        <button class="lightbox-close">&times;</button>
+        <div class="lightbox-content">
+            <img src="" alt="Lightbox Image">
+        </div>
+        <button class="lightbox-nav prev">&lsaquo;</button>
+        <button class="lightbox-nav next">&rsaquo;</button>
+    </div>
+
+    <script>
+        const galleryData = [
+            { id: 1, title: "Modern Living Room", category: "interior", image: '/album/img1.jpg' },
+            { id: 2, title: "Sleek Kitchen Design", category: "interior", image: '/album/img2.jpg' },
+            { id: 3, title: "Luxurious Bedroom", category: "interior", image: '/album/img3.jpg' },
+            { id: 4, title: "Contemporary House Exterior", category: "exterior", image: '/album/img21.jpg' },
+            { id: 5, title: "Minimalist Office Space", category: "interior", image: '/album/img4.jpg' },
+            { id: 6, title: "Zen Garden Design", category: "landscape", image: '/album/img31.jpg' },
+            { id: 7, title: "Modern Facade", category: "exterior", image: '/album/img22.jpg' },
+            { id: 8, title: "Cozy Reading Nook", category: "interior", image: '/album/img5.jpg' },
+            { id: 9, title: "Rooftop Terrace", category: "exterior", image: '/album/img23.jpg' },
+            { id: 10, title: "Elegant Bathroom", category: "interior", image: '/album/img6.jpg' },
+            { id: 11, title: "Lush Backyard Landscape", category: "landscape", image: '/album/img32.jpg' },
+            { id: 12, title: "Modern Home Office", category: "interior", image: '/album/img7.jpg' },
+        ];
+
+        const gallery = document.querySelector('.gallery');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const lightbox = document.querySelector('.lightbox');
+        const lightboxImg = lightbox.querySelector('img');
+        const lightboxClose = lightbox.querySelector('.lightbox-close');
+        const lightboxPrev = lightbox.querySelector('.lightbox-nav.prev');
+        const lightboxNext = lightbox.querySelector('.lightbox-nav.next');
+        let currentIndex = 0;
+
+        function populateGallery(items) {
+            gallery.innerHTML = items.map(item => `
+                <div class="gallery-item" data-category="${item.category}" data-index="${item.id - 1}">
+                    <img src="${item.image}" alt="${item.title}">
+                    <div class="gallery-item-info">
+                        <h3 class="gallery-item-title">${item.title}</h3>
+                        <p class="gallery-item-category">${item.category.toUpperCase()}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            document.querySelectorAll('.gallery-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    currentIndex = parseInt(item.dataset.index);
+                    updateLightbox();
+                    lightbox.classList.add('active');
+                });
+            });
+        }
+
+        function updateLightbox() {
+            const item = galleryData[currentIndex];
+            lightboxImg.src = item.image;
+        }
+
+        populateGallery(galleryData);
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(btn => btn.classList.remove('active'));
+                btn.classList.add('active');
+                const filter = btn.dataset.filter;
+                const filteredItems = filter === 'all' ? galleryData : galleryData.filter(item => item.category === filter);
+                populateGallery(filteredItems);
+            });
+        });
+
+        lightboxClose.addEventListener('click', () => {
+            lightbox.classList.remove('active');
+        });
+
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) {
+                lightbox.classList.remove('active');
+            }
+        });
+
+        lightboxPrev.addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + galleryData.length) % galleryData.length;
+            updateLightbox();
+        });
+
+        lightboxNext.addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % galleryData.length;
+            updateLightbox();
+        });
+    </script>
+</body>
+
+</html>
